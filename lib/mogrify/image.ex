@@ -6,5 +6,6 @@ defmodule Mogrify.Image do
             height: nil,
             animated: false,
             operations: [],
-            dirty: %{}
+            dirty: %{},
+            date: nil
 end

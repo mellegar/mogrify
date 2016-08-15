@@ -70,12 +70,17 @@ defmodule Mogrify do
   Provides detailed information about the image
   """
   def verbose(image) do
-    {output, 0} = run(image.path, "verbose")
-    info =
-      ~r/\b(?<animated>\[0])? (?<format>\S+) (?<width>\d+)x(?<height>\d+)/
-      |> Regex.named_captures(output)
-      |> Enum.map(&normalize_verbose_term/1)
-      |> Enum.into(%{})
+    {output, 0} = run(image.path, "-verbose -identify")
+    regexes =
+      [~r/Format\:\s*(?<format>\w*)[\s\n]/,
+       ~r/Geometry\:\s*(?<width>\d*)x(?<height>\d*)/,
+       ~r/exif\:DateTimeOriginal\:\s*(?<date>\w*)[\s\n]/]
+    info = regexes
+    |> Enum.map(&Regex.named_captures(&1, output))
+    |> Enum.reduce(%{}, fn(nil, m2) -> m2; (m1, m2) -> Map.merge(m1, m2) end)
+    |> Enum.map(&normalize_verbose_term/1)
+    |> Enum.into(%{})
+    IO.inspect(info)
     Map.merge(image, info)
   end
 
@@ -165,8 +170,8 @@ defmodule Mogrify do
     %{image | operations: image.operations ++ [{action, options}]}
   end
 
-  defp run(path, option, params \\ nil) do
-    args = ~w(-#{option} #{params} #{String.replace(path, " ", "\\ ")})
+  defp run(path, options, params \\ nil) do
+    args = ~w(#{options} #{params} #{String.replace(path, " ", "\\ ")})
     System.cmd "mogrify", args, stderr_to_stdout: true
   end
 end
