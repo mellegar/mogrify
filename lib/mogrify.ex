@@ -74,7 +74,7 @@ defmodule Mogrify do
     regexes =
       [~r/Format\:\s*(?<format>\w*)[\s\n]/,
        ~r/Geometry\:\s*(?<width>\d*)x(?<height>\d*)/,
-       ~r/exif\:DateTimeOriginal\:\s*(?<date>\w*)[\s\n]/]
+       ~r/exif\:DateTimeOriginal\:\s*(?<date>[\w\s\:]*)[$\n]/]
     info = regexes
     |> Enum.map(&Regex.named_captures(&1, output))
     |> Enum.reduce(%{}, fn(nil, m2) -> m2; (m1, m2) -> Map.merge(m1, m2) end)
